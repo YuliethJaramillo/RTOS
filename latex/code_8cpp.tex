@@ -1,0 +1,285 @@
+\doxysection{code.\+cpp File Reference}
+\hypertarget{code_8cpp}{}\label{code_8cpp}\index{code.cpp@{code.cpp}}
+{\ttfamily \#include $<$Arduino.\+h$>$}\newline
+{\ttfamily \#include $<$DHT.\+h$>$}\newline
+{\ttfamily \#include $<$Wire.\+h$>$}\newline
+{\ttfamily \#include "{}RTClib.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+sleep.\+h"{}}\newline
+\doxysubsubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{code_8cpp_a757bb4e2bff6148de6ef3989b32a0126}{DHTPIN}}~13
+\begin{DoxyCompactList}\small\item\em \texorpdfstring{$<$}{<} Biblioteca para habilitar el modo de bajo consumo \end{DoxyCompactList}\item 
+\#define \mbox{\hyperlink{code_8cpp_a2c509dba12bba99883a5be9341b7a0c5}{DHTTYPE}}~DHT11
+\begin{DoxyCompactList}\small\item\em Tipo de sensor DHT (DHT11 o DHT22) \end{DoxyCompactList}\item 
+\#define \mbox{\hyperlink{code_8cpp_a51fd859df7f54aaa2ef64c36c97b548a}{LDR\+\_\+\+PIN}}~34
+\begin{DoxyCompactList}\small\item\em Pin del sensor de luz (LDR) \end{DoxyCompactList}\item 
+\#define \mbox{\hyperlink{code_8cpp_ab4553be4db9860d940f81d7447173b2f}{LED\+\_\+\+PIN}}~4
+\begin{DoxyCompactList}\small\item\em Pin del LED. \end{DoxyCompactList}\item 
+\#define \mbox{\hyperlink{code_8cpp_af3ee19d64b252dd01972eab55bbbb2ff}{BOTON\+\_\+\+PIN}}~5
+\begin{DoxyCompactList}\small\item\em Pin del botón. \end{DoxyCompactList}\item 
+\#define \mbox{\hyperlink{code_8cpp_af385696a9a5758160a4baef137821004}{SENSOR\+\_\+\+IR\+\_\+\+PIN}}~19
+\begin{DoxyCompactList}\small\item\em Pin del sensor infrarrojo. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+DHT \mbox{\hyperlink{code_8cpp_ad7a1df263f6f823242a112ec11297434}{dht}} (\mbox{\hyperlink{code_8cpp_a757bb4e2bff6148de6ef3989b32a0126}{DHTPIN}}, \mbox{\hyperlink{code_8cpp_a2c509dba12bba99883a5be9341b7a0c5}{DHTTYPE}})
+\begin{DoxyCompactList}\small\item\em Objeto para el sensor DHT. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{code_8cpp_af0410ab13c851f5a242ec55ae6e9cf24}{enter\+Deep\+Sleep}} ()
+\begin{DoxyCompactList}\small\item\em Entra en modo Deep Sleep. \end{DoxyCompactList}\item 
+void IRAM\+\_\+\+ATTR \mbox{\hyperlink{code_8cpp_a8deaf107019ac81bc6236c1dd097c28f}{incrementar\+Contador}} ()
+\begin{DoxyCompactList}\small\item\em Interrupción para incrementar el contador. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{code_8cpp_a07cde9115e63d9f0ada3fe769ff542e5}{read\+Temperature}} (void \texorpdfstring{$\ast$}{*}parameter)
+\begin{DoxyCompactList}\small\item\em Tarea para leer la temperatura. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{code_8cpp_ab48af9fc9dd02655479458e4b17337b4}{read\+Humidity}} (void \texorpdfstring{$\ast$}{*}parameter)
+\begin{DoxyCompactList}\small\item\em Tarea para leer la humedad. \end{DoxyCompactList}\item 
+uint8\+\_\+t \mbox{\hyperlink{code_8cpp_aa5e673bd5b51f125d568ad2a540a9f59}{calcular\+CRC8}} (const uint8\+\_\+t \texorpdfstring{$\ast$}{*}datos, size\+\_\+t longitud)
+\begin{DoxyCompactList}\small\item\em Calcula el CRC-\/8 de un conjunto de datos. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{code_8cpp_a4fc01d736fe50cf5b977f755b675f11d}{setup}} ()
+\begin{DoxyCompactList}\small\item\em Configuración inicial del ESP32. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{code_8cpp_afe461d27b9c48d5921c00d521181f12f}{loop}} ()
+\begin{DoxyCompactList}\small\item\em Bucle principal vacío, ya que el código funciona con Free\+RTOS. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+RTC\+\_\+\+DS3231 \mbox{\hyperlink{code_8cpp_afa042f998806fcdedab1794cebbeaad3}{rtc}}
+\begin{DoxyCompactList}\small\item\em Objeto para el RTC. \end{DoxyCompactList}\item 
+Queue\+Handle\+\_\+t \mbox{\hyperlink{code_8cpp_afe14ff08299c658a00ec2ad9c72e4968}{luminosidad\+Queue}}
+\item 
+Queue\+Handle\+\_\+t \mbox{\hyperlink{code_8cpp_a80df013736aa05f0efbf11eca5012f6a}{humedad\+Queue}}
+\item 
+Queue\+Handle\+\_\+t \mbox{\hyperlink{code_8cpp_ac52afd52889baae6a2539dc65e664d32}{temperature\+Queue}}
+\item 
+Queue\+Handle\+\_\+t \mbox{\hyperlink{code_8cpp_aa73519cc818537e5d2b560309e6c0b83}{estado\+Alarma\+Queue}}
+\item 
+Queue\+Handle\+\_\+t \mbox{\hyperlink{code_8cpp_a788be716ea3bee5e5e31029a364dfffa}{contador\+Queue}}
+\item 
+volatile int \mbox{\hyperlink{code_8cpp_ac8152645e3f6d93f19a9b32cb52f997a}{contador}} = 0
+\begin{DoxyCompactList}\small\item\em Contador global incrementado por interrupciones. \end{DoxyCompactList}\item 
+volatile unsigned long \mbox{\hyperlink{code_8cpp_ac0dc20630baf25bdff1f2b0137f3f565}{last\+Interrupt\+Time}} = 0
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Macro Definition Documentation}
+\Hypertarget{code_8cpp_af3ee19d64b252dd01972eab55bbbb2ff}\index{code.cpp@{code.cpp}!BOTON\_PIN@{BOTON\_PIN}}
+\index{BOTON\_PIN@{BOTON\_PIN}!code.cpp@{code.cpp}}
+\doxysubsubsection{\texorpdfstring{BOTON\_PIN}{BOTON\_PIN}}
+{\footnotesize\ttfamily \label{code_8cpp_af3ee19d64b252dd01972eab55bbbb2ff} 
+\#define BOTON\+\_\+\+PIN~5}
+
+
+
+Pin del botón. 
+
+\Hypertarget{code_8cpp_a757bb4e2bff6148de6ef3989b32a0126}\index{code.cpp@{code.cpp}!DHTPIN@{DHTPIN}}
+\index{DHTPIN@{DHTPIN}!code.cpp@{code.cpp}}
+\doxysubsubsection{\texorpdfstring{DHTPIN}{DHTPIN}}
+{\footnotesize\ttfamily \label{code_8cpp_a757bb4e2bff6148de6ef3989b32a0126} 
+\#define DHTPIN~13}
+
+
+
+\texorpdfstring{$<$}{<} Biblioteca para habilitar el modo de bajo consumo 
+
+\texorpdfstring{$<$}{<} Biblioteca para el sensor DHT \texorpdfstring{$<$}{<} Biblioteca para comunicación I2C \texorpdfstring{$<$}{<} Biblioteca para el RTC Pin del sensor DHT \Hypertarget{code_8cpp_a2c509dba12bba99883a5be9341b7a0c5}\index{code.cpp@{code.cpp}!DHTTYPE@{DHTTYPE}}
+\index{DHTTYPE@{DHTTYPE}!code.cpp@{code.cpp}}
+\doxysubsubsection{\texorpdfstring{DHTTYPE}{DHTTYPE}}
+{\footnotesize\ttfamily \label{code_8cpp_a2c509dba12bba99883a5be9341b7a0c5} 
+\#define DHTTYPE~DHT11}
+
+
+
+Tipo de sensor DHT (DHT11 o DHT22) 
+
+\Hypertarget{code_8cpp_a51fd859df7f54aaa2ef64c36c97b548a}\index{code.cpp@{code.cpp}!LDR\_PIN@{LDR\_PIN}}
+\index{LDR\_PIN@{LDR\_PIN}!code.cpp@{code.cpp}}
+\doxysubsubsection{\texorpdfstring{LDR\_PIN}{LDR\_PIN}}
+{\footnotesize\ttfamily \label{code_8cpp_a51fd859df7f54aaa2ef64c36c97b548a} 
+\#define LDR\+\_\+\+PIN~34}
+
+
+
+Pin del sensor de luz (LDR) 
+
+\Hypertarget{code_8cpp_ab4553be4db9860d940f81d7447173b2f}\index{code.cpp@{code.cpp}!LED\_PIN@{LED\_PIN}}
+\index{LED\_PIN@{LED\_PIN}!code.cpp@{code.cpp}}
+\doxysubsubsection{\texorpdfstring{LED\_PIN}{LED\_PIN}}
+{\footnotesize\ttfamily \label{code_8cpp_ab4553be4db9860d940f81d7447173b2f} 
+\#define LED\+\_\+\+PIN~4}
+
+
+
+Pin del LED. 
+
+\Hypertarget{code_8cpp_af385696a9a5758160a4baef137821004}\index{code.cpp@{code.cpp}!SENSOR\_IR\_PIN@{SENSOR\_IR\_PIN}}
+\index{SENSOR\_IR\_PIN@{SENSOR\_IR\_PIN}!code.cpp@{code.cpp}}
+\doxysubsubsection{\texorpdfstring{SENSOR\_IR\_PIN}{SENSOR\_IR\_PIN}}
+{\footnotesize\ttfamily \label{code_8cpp_af385696a9a5758160a4baef137821004} 
+\#define SENSOR\+\_\+\+IR\+\_\+\+PIN~19}
+
+
+
+Pin del sensor infrarrojo. 
+
+
+
+\doxysubsection{Function Documentation}
+\Hypertarget{code_8cpp_aa5e673bd5b51f125d568ad2a540a9f59}\index{code.cpp@{code.cpp}!calcularCRC8@{calcularCRC8}}
+\index{calcularCRC8@{calcularCRC8}!code.cpp@{code.cpp}}
+\doxysubsubsection{\texorpdfstring{calcularCRC8()}{calcularCRC8()}}
+{\footnotesize\ttfamily \label{code_8cpp_aa5e673bd5b51f125d568ad2a540a9f59} 
+uint8\+\_\+t calcular\+CRC8 (\begin{DoxyParamCaption}\item[{const uint8\+\_\+t \texorpdfstring{$\ast$}{*}}]{datos}{, }\item[{size\+\_\+t}]{longitud}{}\end{DoxyParamCaption})}
+
+
+
+Calcula el CRC-\/8 de un conjunto de datos. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em datos} & Array de datos. \\
+\hline
+{\em longitud} & Tamaño del array. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Valor del CRC calculado. 
+\end{DoxyReturn}
+\Hypertarget{code_8cpp_ad7a1df263f6f823242a112ec11297434}\index{code.cpp@{code.cpp}!dht@{dht}}
+\index{dht@{dht}!code.cpp@{code.cpp}}
+\doxysubsubsection{\texorpdfstring{dht()}{dht()}}
+{\footnotesize\ttfamily \label{code_8cpp_ad7a1df263f6f823242a112ec11297434} 
+DHT dht (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{code_8cpp_a757bb4e2bff6148de6ef3989b32a0126}{DHTPIN}}}]{}{, }\item[{\mbox{\hyperlink{code_8cpp_a2c509dba12bba99883a5be9341b7a0c5}{DHTTYPE}}}]{}{}\end{DoxyParamCaption})}
+
+
+
+Objeto para el sensor DHT. 
+
+\Hypertarget{code_8cpp_af0410ab13c851f5a242ec55ae6e9cf24}\index{code.cpp@{code.cpp}!enterDeepSleep@{enterDeepSleep}}
+\index{enterDeepSleep@{enterDeepSleep}!code.cpp@{code.cpp}}
+\doxysubsubsection{\texorpdfstring{enterDeepSleep()}{enterDeepSleep()}}
+{\footnotesize\ttfamily \label{code_8cpp_af0410ab13c851f5a242ec55ae6e9cf24} 
+void enter\+Deep\+Sleep (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Entra en modo Deep Sleep. 
+
+\Hypertarget{code_8cpp_a8deaf107019ac81bc6236c1dd097c28f}\index{code.cpp@{code.cpp}!incrementarContador@{incrementarContador}}
+\index{incrementarContador@{incrementarContador}!code.cpp@{code.cpp}}
+\doxysubsubsection{\texorpdfstring{incrementarContador()}{incrementarContador()}}
+{\footnotesize\ttfamily \label{code_8cpp_a8deaf107019ac81bc6236c1dd097c28f} 
+void IRAM\+\_\+\+ATTR incrementar\+Contador (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Interrupción para incrementar el contador. 
+
+\Hypertarget{code_8cpp_afe461d27b9c48d5921c00d521181f12f}\index{code.cpp@{code.cpp}!loop@{loop}}
+\index{loop@{loop}!code.cpp@{code.cpp}}
+\doxysubsubsection{\texorpdfstring{loop()}{loop()}}
+{\footnotesize\ttfamily \label{code_8cpp_afe461d27b9c48d5921c00d521181f12f} 
+void loop (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Bucle principal vacío, ya que el código funciona con Free\+RTOS. 
+
+\Hypertarget{code_8cpp_ab48af9fc9dd02655479458e4b17337b4}\index{code.cpp@{code.cpp}!readHumidity@{readHumidity}}
+\index{readHumidity@{readHumidity}!code.cpp@{code.cpp}}
+\doxysubsubsection{\texorpdfstring{readHumidity()}{readHumidity()}}
+{\footnotesize\ttfamily \label{code_8cpp_ab48af9fc9dd02655479458e4b17337b4} 
+void read\+Humidity (\begin{DoxyParamCaption}\item[{void \texorpdfstring{$\ast$}{*}}]{parameter}{}\end{DoxyParamCaption})}
+
+
+
+Tarea para leer la humedad. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em parameter} & Parámetro no utilizado. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{code_8cpp_a07cde9115e63d9f0ada3fe769ff542e5}\index{code.cpp@{code.cpp}!readTemperature@{readTemperature}}
+\index{readTemperature@{readTemperature}!code.cpp@{code.cpp}}
+\doxysubsubsection{\texorpdfstring{readTemperature()}{readTemperature()}}
+{\footnotesize\ttfamily \label{code_8cpp_a07cde9115e63d9f0ada3fe769ff542e5} 
+void read\+Temperature (\begin{DoxyParamCaption}\item[{void \texorpdfstring{$\ast$}{*}}]{parameter}{}\end{DoxyParamCaption})}
+
+
+
+Tarea para leer la temperatura. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em parameter} & Parámetro no utilizado. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{code_8cpp_a4fc01d736fe50cf5b977f755b675f11d}\index{code.cpp@{code.cpp}!setup@{setup}}
+\index{setup@{setup}!code.cpp@{code.cpp}}
+\doxysubsubsection{\texorpdfstring{setup()}{setup()}}
+{\footnotesize\ttfamily \label{code_8cpp_a4fc01d736fe50cf5b977f755b675f11d} 
+void setup (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Configuración inicial del ESP32. 
+
+
+
+\doxysubsection{Variable Documentation}
+\Hypertarget{code_8cpp_ac8152645e3f6d93f19a9b32cb52f997a}\index{code.cpp@{code.cpp}!contador@{contador}}
+\index{contador@{contador}!code.cpp@{code.cpp}}
+\doxysubsubsection{\texorpdfstring{contador}{contador}}
+{\footnotesize\ttfamily \label{code_8cpp_ac8152645e3f6d93f19a9b32cb52f997a} 
+volatile int contador = 0}
+
+
+
+Contador global incrementado por interrupciones. 
+
+\Hypertarget{code_8cpp_a788be716ea3bee5e5e31029a364dfffa}\index{code.cpp@{code.cpp}!contadorQueue@{contadorQueue}}
+\index{contadorQueue@{contadorQueue}!code.cpp@{code.cpp}}
+\doxysubsubsection{\texorpdfstring{contadorQueue}{contadorQueue}}
+{\footnotesize\ttfamily \label{code_8cpp_a788be716ea3bee5e5e31029a364dfffa} 
+Queue\+Handle\+\_\+t contador\+Queue}
+
+\Hypertarget{code_8cpp_aa73519cc818537e5d2b560309e6c0b83}\index{code.cpp@{code.cpp}!estadoAlarmaQueue@{estadoAlarmaQueue}}
+\index{estadoAlarmaQueue@{estadoAlarmaQueue}!code.cpp@{code.cpp}}
+\doxysubsubsection{\texorpdfstring{estadoAlarmaQueue}{estadoAlarmaQueue}}
+{\footnotesize\ttfamily \label{code_8cpp_aa73519cc818537e5d2b560309e6c0b83} 
+Queue\+Handle\+\_\+t estado\+Alarma\+Queue}
+
+\Hypertarget{code_8cpp_a80df013736aa05f0efbf11eca5012f6a}\index{code.cpp@{code.cpp}!humedadQueue@{humedadQueue}}
+\index{humedadQueue@{humedadQueue}!code.cpp@{code.cpp}}
+\doxysubsubsection{\texorpdfstring{humedadQueue}{humedadQueue}}
+{\footnotesize\ttfamily \label{code_8cpp_a80df013736aa05f0efbf11eca5012f6a} 
+Queue\+Handle\+\_\+t humedad\+Queue}
+
+\Hypertarget{code_8cpp_ac0dc20630baf25bdff1f2b0137f3f565}\index{code.cpp@{code.cpp}!lastInterruptTime@{lastInterruptTime}}
+\index{lastInterruptTime@{lastInterruptTime}!code.cpp@{code.cpp}}
+\doxysubsubsection{\texorpdfstring{lastInterruptTime}{lastInterruptTime}}
+{\footnotesize\ttfamily \label{code_8cpp_ac0dc20630baf25bdff1f2b0137f3f565} 
+volatile unsigned long last\+Interrupt\+Time = 0}
+
+\Hypertarget{code_8cpp_afe14ff08299c658a00ec2ad9c72e4968}\index{code.cpp@{code.cpp}!luminosidadQueue@{luminosidadQueue}}
+\index{luminosidadQueue@{luminosidadQueue}!code.cpp@{code.cpp}}
+\doxysubsubsection{\texorpdfstring{luminosidadQueue}{luminosidadQueue}}
+{\footnotesize\ttfamily \label{code_8cpp_afe14ff08299c658a00ec2ad9c72e4968} 
+Queue\+Handle\+\_\+t luminosidad\+Queue}
+
+\Hypertarget{code_8cpp_afa042f998806fcdedab1794cebbeaad3}\index{code.cpp@{code.cpp}!rtc@{rtc}}
+\index{rtc@{rtc}!code.cpp@{code.cpp}}
+\doxysubsubsection{\texorpdfstring{rtc}{rtc}}
+{\footnotesize\ttfamily \label{code_8cpp_afa042f998806fcdedab1794cebbeaad3} 
+RTC\+\_\+\+DS3231 rtc}
+
+
+
+Objeto para el RTC. 
+
+\Hypertarget{code_8cpp_ac52afd52889baae6a2539dc65e664d32}\index{code.cpp@{code.cpp}!temperatureQueue@{temperatureQueue}}
+\index{temperatureQueue@{temperatureQueue}!code.cpp@{code.cpp}}
+\doxysubsubsection{\texorpdfstring{temperatureQueue}{temperatureQueue}}
+{\footnotesize\ttfamily \label{code_8cpp_ac52afd52889baae6a2539dc65e664d32} 
+Queue\+Handle\+\_\+t temperature\+Queue}
+
