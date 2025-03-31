@@ -1,0 +1,274 @@
+#include <Arduino.h>
+#include <DHT.h>      // Biblioteca para el sensor DHT
+#include <Wire.h>     // Biblioteca para comunicación I2C
+#include "RTClib.h"   // Biblioteca para el RTC
+
+// Configuración del sensor DHT y sensor de luz
+#define DHTPIN 13      // Pin donde está conectado el sensor DHT
+#define DHTTYPE DHT11  // Tipo de sensor (DHT11 o DHT22)
+#define LDR_PIN 34
+#define LED_PIN 4      // Definir el pin del LED
+#define BOTON_PIN  5   // Definicion del pin para el boton
+#define SENSOR_IR_PIN 19 // pin para sensore infrarojo
+
+// Use only core 1 for demo purposes
+#if CONFIG_FREERTOS_UNICORE
+static const BaseType_t app_cpu = 0;
+#else
+static const BaseType_t app_cpu = 1;
+#endif
+
+// Intervalos de lectura
+static const int temp_read_interval = 2500;
+static const int hum_read_interval = 3200;
+static const int luminosidad_read_interval = 1600;
+static const int led_on = 700;
+static const int led_off = 500;
+
+// Objeto para el sensor DHT
+DHT dht(DHTPIN, DHTTYPE);
+
+// Objeto para el RTC
+RTC_DS3231 rtc;
+
+// Handles para las tareas
+TaskHandle_t TaskHandle1 = NULL;
+TaskHandle_t TaskHandle2 = NULL;
+TaskHandle_t TaskHandle3 = NULL;
+TaskHandle_t TaskHandle4 = NULL;
+TaskHandle_t TaskHandle5 = NULL;
+TaskHandle_t TaskHandle6 = NULL;
+
+// Mutex para sincronizar el acceso al puerto serial
+SemaphoreHandle_t serialMutex;
+
+// Declaración de colas
+QueueHandle_t luminosidadQueue;
+QueueHandle_t humedadQueue;
+QueueHandle_t temperatureQueue;
+QueueHandle_t estadoAlarmaQueue;
+QueueHandle_t contadorQueue;
+
+volatile int contador = 0;  // Contador global que se incrementa con la interrupción
+
+volatile unsigned long lastInterruptTime = 0;
+
+//Task 6: Interrupciones
+void IRAM_ATTR incrementarContador() {
+    unsigned long interruptTime = millis();
+    if (interruptTime - lastInterruptTime > 200) {  // Ignorar pulsaciones en 200 ms
+        contador++;  
+        int valor = contador;  
+        xQueueOverwriteFromISR(contadorQueue, &valor, NULL);
+    }
+    lastInterruptTime = interruptTime;
+}
+
+void leerContador(void *parameter) {
+    int valor;
+    while (1) {
+        if (xQueuePeek(contadorQueue, &valor, portMAX_DELAY) == pdTRUE) {
+            xSemaphoreTake(serialMutex, portMAX_DELAY);
+            Serial.printf("Contador: %d\n", valor);
+            xSemaphoreGive(serialMutex);
+        }
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+}
+
+// Función para formatear e imprimir la fecha y hora
+void printDateTime(DateTime now) {
+  Serial.printf("[%04d-%02d-%02d %02d:%02d:%02d] ", 
+                now.year(), now.month(), now.day(),
+                now.hour(), now.minute(), now.second());
+}
+
+// Task 1: Leer temperatura
+void readTemperature(void *parameter) {
+  while (1) {
+    float temperature = dht.readTemperature();
+    if (temperatureQueue) {
+      xQueueOverwrite(temperatureQueue, &temperature);
+    }
+
+    //if (isnan(temperature)) {
+    //  Serial.println("Error al leer la temperatura!");
+    //} else {
+    //  DateTime now = rtc.now();
+      //xSemaphoreTake(serialMutex, portMAX_DELAY);
+      //printDateTime(now);
+      //Serial.printf("Temperatura: %.2f °C\n", temperature);
+      //xSemaphoreGive(serialMutex);
+    //}
+
+    vTaskDelay(temp_read_interval / portTICK_PERIOD_MS);
+  }
+}
+
+// Task 2: Leer humedad
+void readHumidity(void *parameter) {
+  while (1) {
+    float humidity = dht.readHumidity();
+    if (humedadQueue) {
+      xQueueOverwrite(humedadQueue, &humidity);
+    }
+
+    //if (isnan(humidity)) {
+    //  Serial.println("Error al leer la humedad!");
+    //} else {
+    //  DateTime now = rtc.now();
+    //  xSemaphoreTake(serialMutex, portMAX_DELAY);
+    //  printDateTime(now);
+     // Serial.printf("Humedad: %.2f %%\n", humidity);
+     // xSemaphoreGive(serialMutex);
+    //}
+
+    vTaskDelay(hum_read_interval / portTICK_PERIOD_MS);
+  }
+}
+
+// Task 3: Leer Luminosidad
+void readLuminosidad(void *parameter) {
+  while (1) {
+    float luminosidad = analogRead(LDR_PIN);
+    if (luminosidadQueue) {
+      xQueueOverwrite(luminosidadQueue, &luminosidad);
+    }
+
+    //DateTime now = rtc.now();
+    //xSemaphoreTake(serialMutex, portMAX_DELAY);
+    //printDateTime(now);
+    //Serial.printf("Luminosidad: %.2f\n", luminosidad);
+    //xSemaphoreGive(serialMutex);
+
+    vTaskDelay(luminosidad_read_interval / portTICK_PERIOD_MS);
+  }
+}
+
+// Task 4: Encender Led
+void encenderLed(void *parameter) {
+  float luminosidad, humedad, temperature;
+  bool alarma = false;
+
+  while (1) {
+    if (xQueuePeek(luminosidadQueue, &luminosidad, portMAX_DELAY) == pdTRUE &&
+        xQueuePeek(humedadQueue, &humedad, portMAX_DELAY) == pdTRUE &&
+        xQueuePeek(temperatureQueue, &temperature, portMAX_DELAY) == pdTRUE) {
+
+      if ((luminosidad > 500) || (humedad > 70 && temperature > 24)) {
+        alarma = true;
+        digitalWrite(LED_PIN, HIGH);
+        vTaskDelay(led_on / portTICK_PERIOD_MS);
+        digitalWrite(LED_PIN, LOW);
+        vTaskDelay(led_off / portTICK_PERIOD_MS);
+      } else {
+        alarma = false;
+      }
+
+      // Guardar estado del LED en la cola
+      xQueueOverwrite(estadoAlarmaQueue, &alarma);
+    }
+  }
+}
+
+// Clculo del crc
+uint8_t calcularCRC8(const uint8_t *datos, size_t longitud) {
+  uint8_t crc = 0x00;
+  for (size_t i = 0; i < longitud; i++) {
+    crc ^= datos[i];
+    for (uint8_t j = 0; j < 8; j++) {
+      if (crc & 0x80) {
+        crc = (crc << 1) ^ 0x07; // Polinomio CRC-8 (x^8 + x^2 + x + 1)
+      } else {
+        crc <<= 1;
+      }
+    }
+  }
+  return crc;
+}
+
+// Task 5 formateo de datos:
+
+void formateoDatos(void *parameter) {
+  while (1) {
+    DateTime now = rtc.now();
+    float luminosidad, humedad, temperature;
+    bool alarma;
+
+    if (xQueuePeek(luminosidadQueue, &luminosidad, portMAX_DELAY) == pdTRUE &&
+        xQueuePeek(humedadQueue, &humedad, portMAX_DELAY) == pdTRUE &&
+        xQueuePeek(temperatureQueue, &temperature, portMAX_DELAY) == pdTRUE &&
+        xQueuePeek(estadoAlarmaQueue, &alarma, portMAX_DELAY) == pdTRUE) {
+
+      // Crear un array con los datos a incluir en el CRC
+      uint8_t datosCRC[] = {
+        static_cast<uint8_t>(luminosidad),
+        static_cast<uint8_t>(humedad),
+        static_cast<uint8_t>(temperature),
+        static_cast<uint8_t>(alarma)
+      };
+
+      uint8_t crc = calcularCRC8(datosCRC, sizeof(datosCRC));
+      double crcDouble = static_cast<double>(crc); // Convertir CRC a double
+
+      xSemaphoreTake(serialMutex, portMAX_DELAY);
+      Serial.printf("[%04d-%02d-%02d %02d:%02d:%02d] Luminosidad: %.2f, Humedad: %.2f%%, Temperatura: %.2f°C, LED: %s, CRC: %.2f\n",
+                    now.year(), now.month(), now.day(), now.hour(), now.minute(), now.second(),
+                    luminosidad, humedad, temperature, alarma ? "ON" : "OFF", crcDouble);
+      xSemaphoreGive(serialMutex);
+    }
+
+    vTaskDelay(luminosidad_read_interval / portTICK_PERIOD_MS);
+  }
+}
+
+
+
+
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_PIN, OUTPUT);
+  pinMode(BOTON_PIN, INPUT_PULLUP);
+
+  attachInterrupt(digitalPinToInterrupt(BOTON_PIN), incrementarContador, FALLING);
+  
+  attachInterrupt(digitalPinToInterrupt(SENSOR_IR_PIN), incrementarContador, FALLING);
+
+  // Inicializar colas
+  luminosidadQueue = xQueueCreate(1, sizeof(float));
+  humedadQueue = xQueueCreate(1, sizeof(float));
+  temperatureQueue = xQueueCreate(1, sizeof(float));
+  estadoAlarmaQueue = xQueueCreate(1, sizeof(bool));  // <-- Agregar esta cola
+  contadorQueue = xQueueCreate(1, sizeof(int));
+
+  dht.begin();
+
+  if (!rtc.begin()) {
+    Serial.println("No se encontró el RTC. Verifica las conexiones.");
+    while (1);
+  }
+
+  if (rtc.lostPower()) {
+    Serial.println("RTC perdió energía, estableciendo la fecha y hora...");
+    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  }
+
+  serialMutex = xSemaphoreCreateMutex();
+  if (serialMutex == NULL) {
+    Serial.println("Error al crear el mutex!");
+    while (1);
+  }
+
+  xTaskCreatePinnedToCore(readTemperature, "Read Temp", 4096, NULL, 1, &TaskHandle1, app_cpu);
+  xTaskCreatePinnedToCore(readHumidity, "Read Humidity", 4096, NULL, 1, &TaskHandle2, app_cpu);
+  xTaskCreatePinnedToCore(readLuminosidad, "Read Luminosidad", 4096, NULL, 1, &TaskHandle3, app_cpu);
+  xTaskCreatePinnedToCore(encenderLed, "Encender LED", 4096, NULL, 1, &TaskHandle4, app_cpu);
+  xTaskCreatePinnedToCore(formateoDatos, "Formatear Datos", 4096, NULL, 1, &TaskHandle5, app_cpu);
+  xTaskCreatePinnedToCore(leerContador, "leerContador", 4096, NULL, 1, &TaskHandle6, app_cpu);
+}
+
+
+void loop() {
+  // No hacer nada en el loop principal
+}
